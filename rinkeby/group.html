@@ -1,0 +1,265 @@
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="moneypipe stream" />
+<meta name="twitter:description" content="Create a group that splits incoming money to members in realtime" />
+<meta name="twitter:image" content="https://stream.moneypipe.xyz/mp.png" />
+<meta property="og:url" content="https://stream.moneypipe.xyz/rinkeby" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="moneypipe stream" />
+<meta property="og:description" content="Create a group that splits incoming money to members in realtime" />
+<meta property="og:image" content="https://stream.moneypipe.xyz/mp.png" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta2/css/all.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@3.0.0/dist/web3.min.js"></script>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+<script src="https://unpkg.com/qrcode@1.5.0/build/qrcode.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/randomcolor/0.6.1/randomColor.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.7/handlebars.min.js"></script>
+<link href="/style.css" rel="stylesheet">
+<script src="factory_abi.js"></script>
+<script src="pipe_abi.js"></script>
+<script src="config.js"></script>
+<script id="template" type="text/x-handlebars-template">
+  <input class='account' type='text' placeholder='address'>
+  <input class='value' type='number' placeholder='split portion (1, 10, 100, ...)'>
+</script>
+<script>
+let Params = {}
+location.hash.slice(1).split("&").forEach((token) => {
+  let [key, val] = token.split("=")
+  Params[key] = val
+})
+var web3 = new Web3(window.ethereum);
+var contract = new web3.eth.Contract(pipe_abi, Params.address)
+var factory = new web3.eth.Contract(factory_abi, Config.address);
+var template = Handlebars.compile(document.querySelector("#template").innerHTML)
+var account
+var chart;
+console.log("plugins", Chart)
+let etherscan;
+if (Config.network === "rinkeby") {
+  etherscan = "https://rinkeby.etherscan.io/address/"
+} else {
+  etherscan = "https://etherscan.io/address/"
+}
+const draw2 = () => {
+  document.querySelector(".chart").classList.remove("hidden")
+  let sum = 0;
+  for(part of parts) {
+    sum += part.value
+  }
+  console.log("parts", parts)
+  if (chart) {
+    chart.data.labels = parts.map((part) => {
+      return part.account
+    })
+    chart.data.datasets = [{
+      backgroundColor: randomColor({ count: parts.length }),
+      data: parts.map((part) => {
+        return part.value
+      })
+    }]
+    chart.update();
+  } else {
+    const ctx = document.getElementById('chart').getContext('2d');
+    let labels = parts.map((part) => {
+      return part.account
+    })
+    chart = new Chart(ctx, {
+      type: "pie",
+      data: {
+        labels: labels,
+        datasets: [{
+          backgroundColor: randomColor({ count: parts.length }),
+          //backgroundColor: barColors,
+          data: parts.map((part) => {
+            return part.value
+          })
+        }]
+      },
+      plugins: [ChartDataLabels],
+      options: {
+        plugins: {
+          datalabels: {
+            formatter: (value, ctx) => {
+            /*
+              let datasets = ctx.chart.data.datasets;
+              if (datasets.indexOf(ctx.dataset) === datasets.length - 1) {
+                let sum = datasets[0].data.reduce((a, b) => a + b, 0);
+                let percentage = Math.round((value / sum) * 100) + '%';
+                return percentage;
+              } else {
+                return percentage;
+              }
+              */
+              return value
+            },
+            color: '#fff',
+          }
+        }
+      }
+    });
+  }
+}
+const draw = (val) => {
+  let data = new google.visualization.DataTable();
+  data.addColumn('string', 'From');
+  data.addColumn('string', 'To');
+  data.addColumn('number', 'Weight');
+  //data.addColumn({ type: 'string', role: 'tooltip', p: { html: true } })
+  let rows
+
+  if (val) {
+    rows = parts.map((part) => {
+      console.log("part", part)
+      return [
+        "Input",
+        `${part.account} (${Math.floor(val * part.value/part.total*100)/100} ETH)`,
+        part.value,
+//        `<a class='tooltip' href="${etherscan}${part.account}">view on etherscan</a>`,
+      ]
+    })
+  } else {
+    rows = parts.map((part) => {
+      return [
+        "Input",
+        `${part.account} (${Math.floor(part.value/part.total*10000)/100}%)`,
+        part.value,
+//        `<a class='tooltip' href="${etherscan}${part.account}">view on etherscan</a>`,
+      ]
+    })
+    console.log("rows", rows)
+  }
+  data.addRows(rows)
+
+  let chart = new google.visualization.Sankey(document.getElementById('chart'))
+  chart.draw(data, {
+    width: "100%",
+    height: 30 * rows.length,
+//    tooltip: {
+//      isHtml: true,
+//    },
+    sankey: {
+      node: {
+        label: {
+          color: "#ffffff",
+          fontSize: 12
+        },
+      },
+      link: {
+        colorMode: 'gradient',
+        color: { fill: '#ffffff' },
+      }
+    }
+  })
+  google.visualization.events.addListener(chart, 'select', () => {
+    console.log("x")
+    var selectedItem = chart.getSelection()[0];
+    if (selectedItem) {
+      var value = data.getValue(selectedItem.row, selectedItem.column);
+      alert('The user selected ' + value);
+    }
+  })
+}
+
+var parts = []
+document.addEventListener("DOMContentLoaded", async () => {
+  await ethereum.request({ method: 'eth_requestAccounts' })
+  let _res = await web3.eth.getAccounts()
+  account = _res[0];
+  let contract = new web3.eth.Contract(pipe_abi, Params.address)
+
+  let logs = await factory.getPastEvents("ContractDeployed", {
+    filter: { group: Params.address },
+    fromBlock: 0,
+    toBlock  : "latest",
+  })
+  console.log("logs", logs)
+  document.querySelector("#title").textContent = logs[0].returnValues.title;
+  document.querySelector("#addr").innerHTML = `Group address: <a target="_blank" href="${etherscan}${Params.address}#internaltx">${Params.address}</a><br><br>Send ETH to this group to auto-distribute funds to the members:`
+  document.querySelector("#address").textContent = "ethereum:" + Params.address
+  document.querySelector("#address").href = "ethereum:" + Params.address
+  QRCode.toCanvas(document.querySelector("#qr"), "ethereum:" + Params.address, function (error) {
+    if (error) console.error(error)
+    console.log('success!');
+  })
+
+  document.querySelector(".reveal").addEventListener("click", (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    document.querySelector(".alternative").classList.remove("hidden")
+  })
+
+
+  parts = await contract.methods.members().call().then((r) => {
+    return r.map((x) => {
+      return {
+        account: x.account,
+        total: parseInt(x.total),
+        value: parseInt(x.value)
+      }
+    })
+  })
+  console.log("parts", parts)
+  google.charts.load('current', {'packages':['sankey']});
+  google.charts.setOnLoadCallback(draw);
+  document.querySelector("form").addEventListener("submit", async (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    document.querySelector(".loading").classList.remove("hidden")
+    document.querySelector(".send").classList.add("hidden")
+    document.querySelector(".receivers").classList.remove("hidden")
+    document.querySelector(".receivers").innerHTML = parts.map((part, i) => {
+      return `<a target="_blank" href="${etherscan}${part.account}">member ${i+1}: ${part.account}</a>`
+    }).join("")
+    let tx = await web3.eth.sendTransaction({
+      from: account,
+      to: Params.address,
+      value: Math.pow(10, 18) * parseFloat(e.target.querySelector(".value").value)
+    })
+    document.querySelector(".loading").classList.add("hidden")
+  })
+  document.querySelector(".value").addEventListener("input", (e) => {
+    draw(parseFloat(e.target.value))
+  })
+
+})
+</script>
+</head>
+<body>
+<nav>
+  <div class='brand'>
+    <a href="https://moneypipe.xyz">moneypipe</a><span class='separator'>.</span><a href="/">stream</a><span class='separator'>.</span><a href=".">rinkeby</a>
+  </div>
+  <div class='subtitle'>create a group that splits incoming money to members in realtime</div>
+  <div>
+    <a class='btn' href="../../about">How does it work?</a>
+    <a class='btn' href='https://pipe.moneygroup.app/rinkeby/group#address=0xeBcEacc29b3094A72EFc44646b4c023E0320464b'>Demo</a>
+  </div>
+</nav>
+<header>
+  <h1 id='title'></h1>
+  <div id='addr'></div>
+  <div id='chart'></div>
+  <form class='field2'>
+    <input class='value' type='text' placeholder="enter in eth (0.1, 0.02, etc.)">
+    <input type='submit' value='send to group' class='btn send'>
+  </form>
+  <div class='options'>
+    or <span class='reveal'>use QR code or address</span>
+  </div>
+  <div class='alternative hidden'>
+    <a id='address'></a>
+    <canvas id='qr'></canvas>
+  </div>
+  <div class='dark loading hidden'>
+    <i class="fa-solid fa-angle-up fa-flip"></i> sending ETH to the group...
+  </div>
+  <div class='receivers hidden'>
+  </div>
+</header>
+</body>
+</html>

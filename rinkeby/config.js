@@ -1,0 +1,8 @@
+const Config = {
+//  address: "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+//  address: "0xe061AcA0406348B6785Fde7131DEb58AC62fB618"
+  network: "rinkeby",
+//  address: "0x222410467D455fE1029c434bf5AC86A0F711880E"
+//  address: "0xF1ad1743D5691f9b61FA4B31a9b4FE2c893231ED"
+  address: "0x8faBF08451B71d0Ac8859828130051C5D3f674fa"
+}

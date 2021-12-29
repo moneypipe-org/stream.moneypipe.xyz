@@ -1,0 +1,81 @@
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="moneypipe stream" />
+<meta name="twitter:description" content="Create a group that splits incoming money to members in realtime" />
+<meta name="twitter:image" content="https://stream.moneypipe.xyz/mp.png" />
+<meta property="og:url" content="https://stream.moneypipe.xyz/rinkeby" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="moneypipe stream" />
+<meta property="og:description" content="Create a group that splits incoming money to members in realtime" />
+<meta property="og:image" content="https://stream.moneypipe.xyz/mp.png" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta2/css/all.min.css" rel="stylesheet">
+<link href="/style.css" rel="stylesheet">
+</head>
+<body>
+<nav>
+  <div class='brand'>
+    <a href="https://moneypipe.xyz">moneypipe</a><span class='separator'>.</span><a href="/">stream</a><span class='separator'>.</span><a href=".">rinkeby</a>
+  </div>
+  <div class='subtitle'>create a group that splits incoming money to members in realtime</div>
+  <div>
+    <a class='btn' href="https://discord.gg/BZtp5F6QQM"><i class="fa-brands fa-discord"></i> Discord</a>
+    <a class='btn' href="https://twitter.com/skogard"><i class="fa-brands fa-twitter"></i> Twitter</a>
+    <a class='btn' href='https://github.com/moneypipe-org'><i class="fa-brands fa-github"></i> GitHub</a>
+  </div>
+</nav>
+<div class='container'>
+  <div class='item'>
+    <h1>What is it?</h1>
+    <p>
+      The "stream" engine automatically splits and propagates ("streams") all incoming funds to the group members.
+    </p>
+    <img class='screenshot' src="/pipe.png">
+  </div>
+  <div class='item'>
+    <h1>What makes it special?</h1>
+    <p>
+      <h3>1. Virtual identity for groups</h3>
+      Every group has an address. Send funds to it, reference the address in another contract, and so forth. You can treat the group as a single entity. Think of it like setting up a company with multiple founders, but much more casual. Once a company is set up, the company acts as an independent entity, and the founders share the profits.
+    </p>
+    <p>
+      <h3>2. Instantly plug into any other contracts</h3>
+      Stream is versatile. Because it doesn't have a specific contract method you need to call, but is activated simply by sending money to it, you can use it in all kinds of contexts. You can use it as a minimal module in a DAO, as a recipient of an NFT contract royalty, as a way to split funds among NFT collaborators, and so on.
+    <p>
+    <p>
+      <h3>3. Immutable => composable</h3>
+      Stream truly shines when it comes to composability. Because each stream is immutable, you can trust that the split algorithm will never change in the future. Therefore can treat streams as low level building blocks and build the addresses into oher contracts, and they will work deterministically forever.
+    </p>
+  </div>
+  <div class='item'>
+    <h1>How to use?</h1>
+    <ol>
+      <li>Set up a group with multiple receivers. Each group has its own receiving address ('input address').</li>
+      <li>Share or use the address and let anyone send money to the group</li>
+      <li>The stream automatically splits all the incoming funds and sends out to the members in realtime (Push based).</li>
+      <li>All streams are immutable. If you want to create a stream with different split ratio, create a new one and use it instead.</li>
+    </ol>
+    <img class='screenshot' src='/pipe.gif'>
+  </div>
+  <div class='item'>
+    <h1>Why use stream?</h1>
+    <ol>
+      <li><b>SAVE MONEY:</b> stream utilizes the state of the art technology called "minimal proxy contract", which makes it as cheap as possible to create these groups. If you were to deploy them on your own, it would be much more expensive.</li>
+      <li><b>100% FREE:</b> This contract has no business model attached. It's 100% public utility for everyone.</li>
+      <li><b>SUPER OPTIMIZED IMPLEMENTATION:</b> The contract has been obsessively optimized to lower the cost to deploying each group ("stream"). There is no reason to write your own contract. Just use it.</li>
+    </ol>
+  </div>
+  <div class='item'>
+    <h1>What is it for?</h1>
+    <ol>
+      <li><b>Manage split payments:</b> Instantly set up a "blockchain entity" that can auto-split any incoming funds and send to designated receiver addresses.</li>
+      <li><b>NFT royalty split:</b> Most NFT royalty implementations (including the EIP-2981 standard and Opensea) designates one receiver address for royalty payment. You can use this existing workflow but plug in a stream to automatically split royalty payments to multiple contributors.</li>
+      <li><b>Minimal building block for DAOs:</b> In many cases you need a super simple way to route funds across multiple addresses. stream is it.</li>
+      <li><b>Stack multiple streams:</b> Just like UNIX pipeline, you can stack multiple streams together to create a workflow. For example you can create stream 1, and connect it to stream 2. Then when there's an incoming transfer to stream 2, the money will be split and stream 1 will receive its own share, from which it can split yet again and send to all receivers</li>
+      <li><b>Build into smart contracts:</b> Since every stream is its own smart contract with own standalone address, you can easiliy integrate stream entity addresses into your other contracts to build sophisticated workflows.</li>
+    </ol>
+  </div>
+</div>
+</body>
+</html>

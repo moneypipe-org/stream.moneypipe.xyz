@@ -1,0 +1,57 @@
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="moneypipe stream" />
+<meta name="twitter:description" content="Create a group that splits incoming money to members in realtime" />
+<meta name="twitter:image" content="https://stream.moneypipe.xyz/mp.png" />
+<meta property="og:url" content="https://stream.moneypipe.xyz/rinkeby" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="moneypipe stream" />
+<meta property="og:description" content="Create a group that splits incoming money to members in realtime" />
+<meta property="og:image" content="https://stream.moneypipe.xyz/mp.png" />
+<script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@3.0.0/dist/web3.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta2/css/all.min.css" rel="stylesheet">
+<link href="/style.css" rel="stylesheet">
+<script src="factory_abi.js"></script>
+<script src="pipe_abi.js"></script>
+<script src="config.js"></script>
+<script>
+var web3 = new Web3(window.ethereum);
+var factory = new web3.eth.Contract(factory_abi, Config.address);
+var account
+document.addEventListener("DOMContentLoaded", async () => {
+  let _res = await web3.eth.getAccounts()
+  account = _res[0];
+  let logs = await factory.getPastEvents("ContractDeployed", {
+    filter: { owner: account },
+    fromBlock: 0,
+    toBlock  : "latest",
+  })
+  console.log("logs", logs)
+  document.querySelector(".items").innerHTML = logs.map((log) => {
+    return `<a href="group#address=${log.returnValues.group}">${log.returnValues.title}</a>`
+  }).join("")
+})
+</script>
+</head>
+<body>
+<nav>
+  <div class='brand'>
+    <a href="https://moneypipe.xyz">moneypipe</a><span class='separator'>.</span><a href="/">stream</a><span class='separator'>.</span><a href=".">rinkeby</a>
+  </div>
+  <div class='subtitle'>create a group that splits incoming money to members in realtime</div>
+  <div>
+    <a class='btn' href="../about">How does it work?</a>
+    <a class='btn' href="https://discord.gg/BZtp5F6QQM"><i class="fa-brands fa-discord"></i> Discord</a>
+    <a class='btn' href="https://twitter.com/skogard"><i class="fa-brands fa-twitter"></i> Twitter</a>
+    <a class='btn' href='https://github.com/moneypipe-org'><i class="fa-brands fa-github"></i> GitHub</a>
+    <a class='btn' href='https://pipe.moneygroup.app/rinkeby/group#address=0xeBcEacc29b3094A72EFc44646b4c023E0320464b'>Demo</a>
+    <a class='btn reverse' href="new">+ create a group</a>
+  </div>
+</nav>
+<div class='container'>
+  <div class='items'></div>
+</div>
+</body>
+</html>

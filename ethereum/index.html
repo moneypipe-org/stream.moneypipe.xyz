@@ -1,0 +1,43 @@
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="moneypipe rinkeby" />
+<meta name="twitter:description" content="create autonomous revenue sharing groups on ethereum" />
+<meta name="twitter:image" content="https://rinkeby.moneypipe.xyz/mp.png" />
+<meta property="og:url" content="https://rinkeby.moneypipe.xyz" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="moneypipe rinkeby" />
+<meta property="og:description" content="create autonomous revenue sharing groups on ethereum" />
+<meta property="og:image" content="https://rinkeby.moneypipe.xyz/mp.png" />
+<script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@3.0.0/dist/web3.min.js"></script>
+<link href="/style.css" rel="stylesheet">
+<script src="factory_abi.js"></script>
+<script src="pipe_abi.js"></script>
+<script src="config.js"></script>
+<script>
+var web3 = new Web3(window.ethereum);
+var factory = new web3.eth.Contract(factory_abi, Config.address);
+var account
+document.addEventListener("DOMContentLoaded", async () => {
+  let _res = await web3.eth.getAccounts()
+  account = _res[0];
+  let logs = await factory.getPastEvents("ContractDeployed", {
+    filter: { owner: account },
+    fromBlock: 0,
+    toBlock  : "latest",
+  })
+  console.log("logs", logs)
+  document.querySelector(".items").innerHTML = logs.map((log) => {
+    return `<a href="pipe#address=${log.returnValues.pipe}">${log.returnValues.title}</a>`
+  }).join("")
+})
+</script>
+</head>
+<body>
+<nav>
+  <a class='brand' href="/">pipe</a>
+  <div class='subtitle'>coming soon</div>
+</nav>
+</body>
+</html>
