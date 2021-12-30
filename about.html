@@ -12,6 +12,92 @@
 <meta property="og:image" content="https://stream.moneypipe.xyz/mp.png" />
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta2/css/all.min.css" rel="stylesheet">
 <link href="/style.css" rel="stylesheet">
+<script src="rinkeby/config.js"></script>
+<script src="rinkeby/factory_abi.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@3.0.0/dist/web3.min.js"></script>
+<script>
+var web3 = new Web3(window.ethereum);
+var factory = new web3.eth.Contract(factory_abi, Config.address);
+var account;
+const calculate = async (parts) => {
+  let action = factory.methods.genesis("estimate", parts)
+  let data = action.encodeABI()
+  let o = {
+    from: account,
+    to: Config.address,
+    data: data,
+  }
+  let gas = await action.estimateGas(o)
+  let _cost = await cost()
+  let eth = {}
+  let fiat = {}
+  // gwei/gas
+  for(let speed of ["fastest", "fast", "average", "safeLow"]) {
+    eth[speed] = _cost.gas[speed] * gas / Math.pow(10, 10)
+    fiat[speed] = eth[speed] * _cost.price
+  }
+  console.log(eth, fiat)
+  return {
+    eth, fiat
+  }
+}
+const cost = async () => {
+  let net = await this.web3.eth.net.getNetworkType()
+  let [gas, price] = await Promise.all([
+    fetch("https://ethgasstation.info/api/ethgasAPI.json").then((r) => {
+      return r.json()
+    }).then((r) => {
+      delete r.gasPriceRange
+      return r
+    }),
+    fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=ethereum`).then((r) => {
+      return r.json()
+    }).then((r) => {
+      console.log("r", r)
+      return r[0].current_price
+    })
+  ])
+  return { gas, price }
+}
+const render = async () => {
+  let val = parseInt(document.querySelector("#estimate input[type=number]").value)
+  console.log("val", val)
+  let parts = []
+  for(let i=0; i<val; i++) {
+    parts.push({
+      account,
+      value: 1,
+      total: val
+    })
+  }
+  console.log("parts", parts)
+  debugger;
+  let { eth, fiat } = await calculate(parts)
+  let items = []
+  let speeds = ["safeLow", "average", "fast", "fastest"]
+  for(let speed of speeds) {
+    items.push(fiat[speed]) 
+  }
+  let header = "<tr>" + speeds.map((s) => {
+    return `<th>${s}</th>`
+  }).join("") + "</tr>"
+  let body = "<tr>" + items.map((i) => {
+    return `<td>${Math.floor(i)} USD</td>`
+  }).join("") + "</tr>"
+  document.querySelector("#estimated").innerHTML = header + body
+}
+document.addEventListener("DOMContentLoaded", async () => {
+  await ethereum.request({ method: 'eth_requestAccounts' })
+  let _res = await web3.eth.getAccounts()
+  account = _res[0];
+  document.querySelector("#estimate").addEventListener("submit", async (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    await render()
+  })
+  await render()
+})
+</script>
 </head>
 <body>
 <nav>
@@ -32,6 +118,17 @@
       The "stream" engine automatically splits and propagates ("streams") all incoming funds to the group members.
     </p>
     <img class='screenshot' src="/pipe.png">
+  </div>
+  <div class='item'>
+    <h1>How much does it cost to create one?</h1>
+    <div id='estimate-form'>
+      <div>Enter the number of members in the group to calculate realtime gas price estimate right now</div>
+      <form id='estimate'>
+        <input type='number' placeholder='how many members in the group?' value=2>
+        <input type='submit' value='calculate'>
+      </form>
+      <table id='estimated'></table>
+    </div>
   </div>
   <div class='item'>
     <h1>What makes it special?</h1>

@@ -350,3 +350,34 @@ td input {
   opacity: 0.8;
   padding: 5px 0;
 }
+#estimate-form {
+  padding: 20px;
+  box-sizing: border-box;
+  background: rgba(0,0,0,0.05);
+}
+#estimate {
+  margin-top: 10px;
+  display: flex;
+  align-items: stretch;
+}
+#estimate > input {
+  padding: 10px;
+  border-radius: 0;
+  border: 1px solid rgba(0,0,0,0.2);
+}
+#estimate > input[type=submit] {
+  background: rgba(0,0,0,0.8);
+  color: white;
+}
+#estimate > input[type=number] {
+  flex-grow: 1;
+}
+#estimated td, #estimated th {
+  text-align: center; 
+  padding: 10px;
+  background: white;
+  border: none;
+}
+#estimated {
+  border: 1px solid rgba(0,0,0,0.2);
+}
