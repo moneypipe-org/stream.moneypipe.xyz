@@ -1,18 +1,5 @@
 const pipe_abi = [
   {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "src",
-        "type": "address"
-      }
-    ],
-    "name": "Stored",
-    "type": "event"
-  },
-  {
     "inputs": [
       {
         "components": [

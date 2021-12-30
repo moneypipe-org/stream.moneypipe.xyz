@@ -4,5 +4,6 @@ const Config = {
   network: "rinkeby",
 //  address: "0x222410467D455fE1029c434bf5AC86A0F711880E"
 //  address: "0xF1ad1743D5691f9b61FA4B31a9b4FE2c893231ED"
-  address: "0x8faBF08451B71d0Ac8859828130051C5D3f674fa"
+//  address: "0x8faBF08451B71d0Ac8859828130051C5D3f674fa"
+  address: "0x7e1c3B49Ce7a3aa5a11BB21e75dF7B4B06647e6F"
 }
