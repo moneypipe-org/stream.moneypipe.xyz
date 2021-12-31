@@ -1,5 +1,10 @@
 const pipe_abi = [
   {
+    "inputs": [],
+    "name": "TransferFailed",
+    "type": "error"
+  },
+  {
     "inputs": [
       {
         "components": [
