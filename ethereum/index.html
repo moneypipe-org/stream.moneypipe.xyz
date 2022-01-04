@@ -22,10 +22,14 @@ var stream = new Moneypipe.stream({
   network: "main"
 })
 document.addEventListener("DOMContentLoaded", async () => {
-  let groups = await stream.groups()
-  document.querySelector(".items").innerHTML = groups.map((group) => {
-    return `<a href="group#address=${group.group}">${group.title}</a>`
-  }).join("")
+  try {
+    let groups = await stream.groups()
+    document.querySelector(".items").innerHTML = groups.map((group) => {
+      return `<a href="group#address=${group.group}">${group.title}</a>`
+    }).join("")
+  } catch (e) {
+    alert(e.message)
+  }
 })
 </script>
 </head>

@@ -89,9 +89,15 @@ const draw = (val) => {
   })
 }
 document.addEventListener("DOMContentLoaded", async () => {
+  let s;
+  try {
+    s = await stream.get(Params.address)
+  } catch (e) {
+    alert(e.message)
+    return
+  }
   await ethereum.request({ method: 'eth_requestAccounts' })
   let accounts = await web3.eth.getAccounts()
-  let s = await stream.get(Params.address)
   let etherscan = "https://etherscan.io/address/"
   document.querySelector("#title").textContent = s.title;
   document.querySelector("#addr").innerHTML = `Group address: <a target="_blank" href="${etherscan}${Params.address}#internaltx">${Params.address}</a><br><br>Send ETH to this group to auto-distribute funds to the members:`
