@@ -2,42 +2,50 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="moneypipe rinkeby" />
-<meta name="twitter:description" content="create autonomous revenue sharing groups on ethereum" />
-<meta name="twitter:image" content="https://rinkeby.moneypipe.xyz/mp.png" />
-<meta property="og:url" content="https://rinkeby.moneypipe.xyz" />
+<meta name="twitter:title" content="moneypipe stream" />
+<meta name="twitter:description" content="Create a group that splits incoming money to members in realtime" />
+<meta name="twitter:image" content="https://stream.moneypipe.xyz/stream_poster.png" />
+<meta property="og:url" content="https://stream.moneypipe.xyz/ethereum" />
 <meta property="og:type" content="website" />
-<meta property="og:title" content="moneypipe rinkeby" />
-<meta property="og:description" content="create autonomous revenue sharing groups on ethereum" />
-<meta property="og:image" content="https://rinkeby.moneypipe.xyz/mp.png" />
+<meta property="og:title" content="moneypipe stream" />
+<meta property="og:description" content="Create a group that splits incoming money to members in realtime" />
+<meta property="og:image" content="https://stream.moneypipe.xyz/stream_poster.png" />
 <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@3.0.0/dist/web3.min.js"></script>
+<script src="https://unpkg.com/moneypipe/dist/moneypipe.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta2/css/all.min.css" rel="stylesheet">
 <link href="/style.css" rel="stylesheet">
 <script src="factory_abi.js"></script>
 <script src="pipe_abi.js"></script>
-<script src="config.js"></script>
 <script>
-var web3 = new Web3(window.ethereum);
-var factory = new web3.eth.Contract(factory_abi, Config.address);
-var account
+var stream = new Moneypipe.stream({
+  web3: new Web3(window.ethereum),
+  network: "main"
+})
 document.addEventListener("DOMContentLoaded", async () => {
-  let _res = await web3.eth.getAccounts()
-  account = _res[0];
-  let logs = await factory.getPastEvents("ContractDeployed", {
-    filter: { owner: account },
-    fromBlock: 0,
-    toBlock  : "latest",
-  })
-  console.log("logs", logs)
-  document.querySelector(".items").innerHTML = logs.map((log) => {
-    return `<a href="pipe#address=${log.returnValues.pipe}">${log.returnValues.title}</a>`
+  let groups = await stream.groups()
+  document.querySelector(".items").innerHTML = groups.map((group) => {
+    return `<a href="group#address=${group.group}">${group.title}</a>`
   }).join("")
 })
 </script>
 </head>
 <body>
 <nav>
-  <a class='brand' href="/">pipe</a>
-  <div class='subtitle'>coming soon</div>
+  <div class='brand'>
+    <a href="https://moneypipe.xyz">moneypipe</a><span class='separator'>.</span><a href="/">stream</a><span class='separator'>.</span><a href=".">ethereum</a>
+  </div>
+  <div class='subtitle'>create a group that splits incoming money to members in realtime</div>
+  <div>
+    <a class='btn' href="../about">How does it work?</a>
+    <a class='btn' href="https://discord.gg/BZtp5F6QQM"><i class="fa-brands fa-discord"></i> Discord</a>
+    <a class='btn' href="https://twitter.com/skogard"><i class="fa-brands fa-twitter"></i> Twitter</a>
+    <a class='btn' href='https://github.com/moneypipe-org'><i class="fa-brands fa-github"></i> GitHub</a>
+    <a class='btn' href='https://stream.moneypipe.xyz/rinkeby/group#address=0x05A9c70d7827c936c96896Da36676E81C878BFF0'>Demo</a>
+    <a class='btn reverse' href="new">+ create a group</a>
+  </div>
 </nav>
+<div class='container'>
+  <div class='items'></div>
+</div>
 </body>
 </html>

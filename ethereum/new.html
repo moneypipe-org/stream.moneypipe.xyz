@@ -1,0 +1,167 @@
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="moneypipe stream" />
+<meta name="twitter:description" content="Create a group that splits incoming money to members in realtime" />
+<meta name="twitter:image" content="https://stream.moneypipe.xyz/stream_poster.png" />
+<meta property="og:url" content="https://stream.moneypipe.xyz/ethereum" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="moneypipe stream" />
+<meta property="og:description" content="Create a group that splits incoming money to members in realtime" />
+<meta property="og:image" content="https://stream.moneypipe.xyz/stream_poster.png" />
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@3.0.0/dist/web3.min.js"></script>
+<script src="https://unpkg.com/moneypipe/dist/moneypipe.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/randomcolor/0.6.1/randomColor.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.7/handlebars.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta2/css/all.min.css" rel="stylesheet">
+<link href="/style.css" rel="stylesheet">
+<script id="template" type="text/x-handlebars-template">
+{{#each accounts}}
+  <tr class='field'>
+    <td class='account'>{{account}}</td>
+    <td><input value={{val}} class='value' type='number' placeholder='split portion (1, 10, 100, ...)'></td>
+  </tr>
+{{/each}}
+</script>
+<script>
+var CONTRACT_ADDRESS = location.hash.slice(1).split("=")[1]
+var template = Handlebars.compile(document.querySelector("#template").innerHTML)
+var stream = new Moneypipe.stream({
+  web3: new Web3(window.ethereum),
+  network: "main"
+})
+var chart;
+var members = []
+google.charts.load('current', {'packages':['sankey']});
+const update = () => {
+  let total = 0
+  members = []
+  document.querySelectorAll(".field").forEach((el) => {
+    let account = el.querySelector(".account").textContent
+    let value = parseInt(el.querySelector(".value").value)
+    if (!value || isNaN(value)) value = 1;
+    total += value
+    members.push({
+      account, value
+    })
+  })
+  members.forEach((member) => {
+    member.total = total
+  })
+}
+const draw = () => {
+  let data = new google.visualization.DataTable();
+  data.addColumn('string', 'From');
+  data.addColumn('string', 'To');
+  data.addColumn('number', 'Weight');
+  let total = 0;
+  members.forEach((member) => {
+    total += member.value
+  })
+  let rows = members.map((member) => {
+    return [
+      "Input",
+      `${member.account} (${Math.floor(member.value/total*10000)/100}%)`,
+      member.value
+    ]
+  })
+  data.addRows(rows)
+  let chart = new google.visualization.Sankey(document.getElementById('chart'))
+  chart.draw(data, {
+    width: "100%",
+    height: 30 * rows.length,
+    sankey: {
+      node: {
+        label: {
+          color: "#ffffff",
+          fontSize: 12
+        }
+      },
+      link: {
+        colorMode: 'gradient',
+        color: { fill: '#ffffff' },
+      }
+    }
+  })
+}
+document.addEventListener("DOMContentLoaded", async () => {
+  let account = await stream.current_account()
+  document.querySelector(".ratio-form").addEventListener("submit", async (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    update()
+    let title = document.querySelector(".title").value
+    if (!title || title.length === 0) {
+      alert("Please enter a title")
+      return;
+    }
+    e.target.querySelector("input[type=submit]").classList.add("hidden")
+    document.querySelector(".loading").classList.remove("hidden")
+    let { tx, address } = await stream.create({ title, members })
+    location.href = "group#address=" + address
+  })
+  document.querySelector(".form").addEventListener("input", () => {
+    update()
+    draw()
+  })
+  document.querySelector(".address-form").addEventListener("submit", async (e) => {
+    e.target.classList.add("hidden")
+    document.querySelector(".ratio-form").classList.remove("hidden")
+    document.querySelector("header").classList.remove("hidden")
+    e.preventDefault()
+    e.stopPropagation()
+    let addresses = e.target.querySelector(".addresses").value.split("\n").filter((x) => {
+      return x && x.length > 0
+    })
+    let items = addresses.map((x) => {
+      return {
+        account: x.trim(),
+        val: 1
+      }
+    })
+    document.querySelector(".form").innerHTML = template({ accounts: items })
+    update()
+    draw()
+  })
+
+})
+</script>
+</head>
+<body>
+<nav>
+  <div class='brand'>
+    <a href="https://moneypipe.xyz">moneypipe</a><span class='separator'>.</span><a href="/">stream</a><span class='separator'>.</span><a href=".">ethereum</a>
+  </div>
+  <div class='subtitle'>create a group that splits incoming money to members in realtime</div>
+  <div>
+    <a class='btn' href="../../about">How does it work?</a>
+    <a class='btn' href="https://discord.gg/BZtp5F6QQM"><i class="fa-brands fa-discord"></i> Discord</a>
+    <a class='btn' href="https://twitter.com/skogard"><i class="fa-brands fa-twitter"></i> Twitter</a>
+    <a class='btn' href='https://github.com/moneypipe-org'><i class="fa-brands fa-github"></i> GitHub</a>
+  </div>
+</nav>
+<header class='hidden'>
+  <div id='chart'></div>
+</header>
+<div class='container'>
+<form class='address-form'>
+  <textarea class='addresses' placeholder="enter line separated addresses"></textarea>
+  <input type='submit' class='btn' value='next'>
+</form>
+<form class='ratio-form hidden'>
+  <div class='name-form'>
+    <input type='text' placeholder="pipe title" class='title'>
+  </div>
+  <table class='form'></table>
+  <input type='submit' class='btn thick' value='OK'>
+  <div class='loading hidden'>
+    <i class="fa-solid fa-angle-up fa-flip"></i> creating a pipe...
+  </div>
+</form>
+</div>
+</body>
+</html>

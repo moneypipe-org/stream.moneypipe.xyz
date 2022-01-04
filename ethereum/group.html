@@ -1,0 +1,167 @@
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="moneypipe stream" />
+<meta name="twitter:description" content="Create a group that splits incoming money to members in realtime" />
+<meta name="twitter:image" content="https://stream.moneypipe.xyz/stream_poster.png" />
+<meta property="og:url" content="https://stream.moneypipe.xyz/ethereum" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="moneypipe stream" />
+<meta property="og:description" content="Create a group that splits incoming money to members in realtime" />
+<meta property="og:image" content="https://stream.moneypipe.xyz/stream_poster.png" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta2/css/all.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@3.0.0/dist/web3.min.js"></script>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+<script src="https://unpkg.com/qrcode@1.5.0/build/qrcode.js"></script>
+<script src="https://unpkg.com/moneypipe/dist/moneypipe.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/randomcolor/0.6.1/randomColor.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.7/handlebars.min.js"></script>
+<link href="/style.css" rel="stylesheet">
+<script id="template" type="text/x-handlebars-template">
+  <input class='account' type='text' placeholder='address'>
+  <input class='value' type='number' placeholder='split portion (1, 10, 100, ...)'>
+</script>
+<script>
+let Params = {}
+location.hash.slice(1).split("&").forEach((token) => {
+  let [key, val] = token.split("=")
+  Params[key] = val
+})
+var web3 = new Web3(window.ethereum);
+var stream = new Moneypipe.stream({
+  web3: new Web3(window.ethereum),
+  network: "main"
+})
+var template = Handlebars.compile(document.querySelector("#template").innerHTML)
+var chart;
+var members;
+console.log("plugins", Chart)
+const draw = (val) => {
+  let data = new google.visualization.DataTable();
+  data.addColumn('string', 'From');
+  data.addColumn('string', 'To');
+  data.addColumn('number', 'Weight');
+  let rows
+  if (val) {
+    rows = members.map((member) => {
+      return [
+        "Input",
+        `${member.account} (${Math.floor(val * member.value/member.total*100)/100} ETH)`,
+        member.value,
+      ]
+    })
+  } else {
+    rows = members.map((member) => {
+      return [
+        "Input",
+        `${member.account} (${Math.floor(member.value/member.total*10000)/100}%)`,
+        member.value,
+      ]
+    })
+  }
+  data.addRows(rows)
+  let chart = new google.visualization.Sankey(document.getElementById('chart'))
+  chart.draw(data, {
+    width: "100%",
+    height: 30 * rows.length,
+    sankey: {
+      node: {
+        label: {
+          color: "#ffffff",
+          fontSize: 12
+        },
+      },
+      link: {
+        colorMode: 'gradient',
+        color: { fill: '#ffffff' },
+      }
+    }
+  })
+  google.visualization.events.addListener(chart, 'select', () => {
+    var selectedItem = chart.getSelection()[0];
+    if (selectedItem) {
+      var value = data.getValue(selectedItem.row, selectedItem.column);
+      alert('The user selected ' + value);
+    }
+  })
+}
+document.addEventListener("DOMContentLoaded", async () => {
+  await ethereum.request({ method: 'eth_requestAccounts' })
+  let accounts = await web3.eth.getAccounts()
+  let s = await stream.get(Params.address)
+  let etherscan = "https://etherscan.io/address/"
+  document.querySelector("#title").textContent = s.title;
+  document.querySelector("#addr").innerHTML = `Group address: <a target="_blank" href="${etherscan}${Params.address}#internaltx">${Params.address}</a><br><br>Send ETH to this group to auto-distribute funds to the members:`
+  document.querySelector("#address").textContent = "ethereum:" + Params.address
+  document.querySelector("#address").href = "ethereum:" + Params.address
+  QRCode.toCanvas(document.querySelector("#qr"), "ethereum:" + Params.address, function (error) {
+    if (error) console.error(error)
+    console.log('success!');
+  })
+  document.querySelector(".reveal").addEventListener("click", (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    document.querySelector(".alternative").classList.remove("hidden")
+  })
+  members = await stream.members(Params.address)
+  google.charts.load('current', {'packages':['sankey']});
+  google.charts.setOnLoadCallback(draw);
+  document.querySelector("form").addEventListener("submit", async (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    document.querySelector(".loading").classList.remove("hidden")
+    document.querySelector(".send").classList.add("hidden")
+    document.querySelector(".receivers").classList.remove("hidden")
+    document.querySelector(".receivers").innerHTML = members.map((member, i) => {
+      return `<a target="_blank" href="${etherscan}${member.account}">member ${i+1}: ${member.account}</a>`
+    }).join("")
+    let tx = await web3.eth.sendTransaction({
+      from: accounts[0],
+      to: Params.address,
+      value: Math.pow(10, 18) * parseFloat(e.target.querySelector(".value").value)
+    })
+    document.querySelector(".loading").classList.add("hidden")
+  })
+  document.querySelector(".value").addEventListener("input", (e) => {
+    draw(parseFloat(e.target.value))
+  })
+})
+</script>
+</head>
+<body>
+<nav>
+  <div class='brand'>
+    <a href="https://moneypipe.xyz">moneypipe</a><span class='separator'>.</span><a href="/">stream</a><span class='separator'>.</span><a href=".">ethereum</a>
+  </div>
+  <div class='subtitle'>create a group that splits incoming money to members in realtime</div>
+  <div>
+    <a class='btn' href="../../about">How does it work?</a>
+    <a class='btn' href='https://stream.moneypipe.xyz/rinkeby/group#address=0x05A9c70d7827c936c96896Da36676E81C878BFF0'>Demo</a>
+  </div>
+</nav>
+<header>
+  <h1 id='title'></h1>
+  <div id='addr'></div>
+  <div id='chart'></div>
+  <form class='field2'>
+    <input class='value' type='text' placeholder="enter in eth (0.1, 0.02, etc.)">
+    <input type='submit' value='send to group' class='btn send'>
+  </form>
+  <div class='options'>
+    or <span class='reveal'>use QR code or address</span>
+  </div>
+  <div class='alternative hidden'>
+    <a id='address'></a>
+    <canvas id='qr'></canvas>
+  </div>
+  <div class='dark loading hidden'>
+    <i class="fa-solid fa-angle-up fa-flip"></i> sending ETH to the group...
+  </div>
+  <div class='receivers hidden'>
+  </div>
+</header>
+</body>
+</html>
