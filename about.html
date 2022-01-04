@@ -28,7 +28,7 @@ const calculate = async (parts) => {
   let data = action.encodeABI()
   let o = {
     from: account,
-    to: Config.address,
+    to: stream.constants.factory.main,
     data: data,
   }
   let gas = await action.estimateGas(o)
