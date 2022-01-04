@@ -16,11 +16,10 @@
 <link href="/style.css" rel="stylesheet">
 <script src="factory_abi.js"></script>
 <script src="pipe_abi.js"></script>
-<script src="config.js"></script>
 <script>
 var stream = new Moneypipe.stream({
   web3: new Web3(window.ethereum),
-  network: Config.network
+  network: "rinkeby"
 })
 document.addEventListener("DOMContentLoaded", async () => {
   let groups = await stream.groups()
