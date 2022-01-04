@@ -38,8 +38,9 @@ var stream = new Moneypipe.stream({
 })
 var template = Handlebars.compile(document.querySelector("#template").innerHTML)
 var chart;
+var members;
 console.log("plugins", Chart)
-const draw = (members, val) => {
+const draw = (val) => {
   let data = new google.visualization.DataTable();
   data.addColumn('string', 'From');
   data.addColumn('string', 'To');
@@ -106,7 +107,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     e.stopPropagation()
     document.querySelector(".alternative").classList.remove("hidden")
   })
-  let members = await stream.members(Params.address)
+  members = await stream.members(Params.address)
   google.charts.load('current', {'packages':['sankey']});
   google.charts.setOnLoadCallback(draw);
   document.querySelector("form").addEventListener("submit", async (e) => {
@@ -126,7 +127,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.querySelector(".loading").classList.add("hidden")
   })
   document.querySelector(".value").addEventListener("input", (e) => {
-    draw(members, parseFloat(e.target.value))
+    draw(parseFloat(e.target.value))
   })
 })
 </script>
