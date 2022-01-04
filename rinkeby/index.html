@@ -11,26 +11,21 @@
 <meta property="og:description" content="Create a group that splits incoming money to members in realtime" />
 <meta property="og:image" content="https://stream.moneypipe.xyz/stream_poster.png" />
 <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@3.0.0/dist/web3.min.js"></script>
+<script src="https://unpkg.com/moneypipe/dist/moneypipe.js"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta2/css/all.min.css" rel="stylesheet">
 <link href="/style.css" rel="stylesheet">
 <script src="factory_abi.js"></script>
 <script src="pipe_abi.js"></script>
 <script src="config.js"></script>
 <script>
-var web3 = new Web3(window.ethereum);
-var factory = new web3.eth.Contract(factory_abi, Config.address);
-var account
+var stream = new Moneypipe.stream({
+  web3: new Web3(window.ethereum),
+  network: Config.network
+})
 document.addEventListener("DOMContentLoaded", async () => {
-  let _res = await web3.eth.getAccounts()
-  account = _res[0];
-  let logs = await factory.getPastEvents("ContractDeployed", {
-    filter: { owner: account },
-    fromBlock: 0,
-    toBlock  : "latest",
-  })
-  console.log("logs", logs)
-  document.querySelector(".items").innerHTML = logs.map((log) => {
-    return `<a href="group#address=${log.returnValues.group}">${log.returnValues.title}</a>`
+  let groups = await stream.groups()
+  document.querySelector(".items").innerHTML = groups.map((group) => {
+    return `<a href="group#address=${group.group}">${group.title}</a>`
   }).join("")
 })
 </script>
