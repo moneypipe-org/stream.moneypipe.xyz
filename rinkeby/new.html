@@ -89,45 +89,48 @@ const draw = () => {
   })
 }
 document.addEventListener("DOMContentLoaded", async () => {
-  let account = await stream.current_account()
-  document.querySelector(".ratio-form").addEventListener("submit", async (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    update()
-    let title = document.querySelector(".title").value
-    if (!title || title.length === 0) {
-      alert("Please enter a title")
-      return;
-    }
-    e.target.querySelector("input[type=submit]").classList.add("hidden")
-    document.querySelector(".loading").classList.remove("hidden")
-    let { tx, address } = await stream.create({ title, members })
-    location.href = "group#address=" + address
-  })
-  document.querySelector(".form").addEventListener("input", () => {
-    update()
-    draw()
-  })
-  document.querySelector(".address-form").addEventListener("submit", async (e) => {
-    e.target.classList.add("hidden")
-    document.querySelector(".ratio-form").classList.remove("hidden")
-    document.querySelector("header").classList.remove("hidden")
-    e.preventDefault()
-    e.stopPropagation()
-    let addresses = e.target.querySelector(".addresses").value.split("\n").filter((x) => {
-      return x && x.length > 0
-    })
-    let items = addresses.map((x) => {
-      return {
-        account: x.trim(),
-        val: 1
+  try {
+    let account = await stream.current_account()
+    document.querySelector(".ratio-form").addEventListener("submit", async (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      update()
+      let title = document.querySelector(".title").value
+      if (!title || title.length === 0) {
+        alert("Please enter a title")
+        return;
       }
+      e.target.querySelector("input[type=submit]").classList.add("hidden")
+      document.querySelector(".loading").classList.remove("hidden")
+      let { tx, address } = await stream.create({ title, members })
+      location.href = "group#address=" + address
     })
-    document.querySelector(".form").innerHTML = template({ accounts: items })
-    update()
-    draw()
-  })
-
+    document.querySelector(".form").addEventListener("input", () => {
+      update()
+      draw()
+    })
+    document.querySelector(".address-form").addEventListener("submit", async (e) => {
+      e.target.classList.add("hidden")
+      document.querySelector(".ratio-form").classList.remove("hidden")
+      document.querySelector("header").classList.remove("hidden")
+      e.preventDefault()
+      e.stopPropagation()
+      let addresses = e.target.querySelector(".addresses").value.split("\n").filter((x) => {
+        return x && x.length > 0
+      })
+      let items = addresses.map((x) => {
+        return {
+          account: x.trim(),
+          val: 1
+        }
+      })
+      document.querySelector(".form").innerHTML = template({ accounts: items })
+      update()
+      draw()
+    })
+  } catch (e) {
+    alert(e.message)
+  }
 })
 </script>
 </head>
