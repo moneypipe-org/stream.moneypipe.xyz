@@ -20,13 +20,11 @@ h2, h3 {
   margin: 5px 0;
 }
 .row {
-  border-left: 4px solid black;
-  padding-left: 10px;
   text-decoration: none;
   color: rgba(0,0,0,0.8);
-  margin: 10px 0;
+  padding: 10px 0;
   display: block;
-  font-size: 14px;
+  font-size: 16px;
 }
 .row.disabled {
   opacity: 0.4;
@@ -380,4 +378,7 @@ td input {
 }
 #estimated {
   border: 1px solid rgba(0,0,0,0.2);
+}
+.links {
+  margin-top: 20px;
 }
