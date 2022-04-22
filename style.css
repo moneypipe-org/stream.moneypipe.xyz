@@ -382,3 +382,8 @@ td input {
 .links {
   margin-top: 20px;
 }
+#explain {
+  padding: 20px;
+  background: rgba(0,0,0,0.05);
+  margin: 20px 0;
+}
