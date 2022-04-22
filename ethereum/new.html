@@ -119,9 +119,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         return x && x.length > 0
       })
       let items = addresses.map((x) => {
-        return {
-          account: x.trim(),
-          val: 1
+        let chunks = x.trim().split(/[ ]*,[ ]*/)
+        if (chunks.length === 2) {
+          return {
+            account: chunks[0],
+            val: parseInt(chunks[1])
+          }
+        } else {
+          return {
+            account: chunks[0],
+            val: 1
+          }
         }
       })
       document.querySelector(".form").innerHTML = template({ accounts: items })
